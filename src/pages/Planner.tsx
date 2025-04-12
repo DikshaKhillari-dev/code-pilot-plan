@@ -30,9 +30,41 @@ const mockEvents: CalendarEvent[] = [
   },
 ];
 
+// Add CSS for the event indicator dot directly to the stylesheet
+// This will be applied globally
+const eventIndicatorStyles = `
+  .has-event {
+    position: relative;
+  }
+  
+  .has-event::after {
+    content: '';
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--primary);
+  }
+`;
+
 const Planner = () => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  
+  // Add the styles to the document head when the component mounts
+  React.useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = eventIndicatorStyles;
+    document.head.appendChild(styleElement);
+    
+    // Clean up when the component unmounts
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
   
   const handlePreviousMonth = () => {
     setCurrentDate(subMonths(currentDate, 1));
@@ -134,25 +166,6 @@ const Planner = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Add CSS for the event indicator dot */}
-      <style jsx global>{`
-        .has-event {
-          position: relative;
-        }
-        
-        .has-event::after {
-          content: '';
-          position: absolute;
-          bottom: 1px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 4px;
-          height: 4px;
-          border-radius: 50%;
-          background-color: var(--primary);
-        }
-      `}</style>
     </div>
   );
 };
