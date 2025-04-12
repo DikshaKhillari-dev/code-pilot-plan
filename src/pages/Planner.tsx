@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -46,6 +47,12 @@ const Planner = () => {
     ? mockEvents.filter(event => event.date === format(selectedDate, 'yyyy-MM-dd')) 
     : [];
 
+  // Function to check if a date has events
+  const dateHasEvents = (date: Date) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    return mockEvents.some(event => event.date === formattedDate);
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
@@ -79,21 +86,24 @@ const Planner = () => {
               onSelect={setSelectedDate}
               month={currentDate}
               className="rounded-md border"
-              renderDay={(props) => {
-                const date = props.date;
-                const formattedDate = format(date, 'yyyy-MM-dd');
-                const dayEvents = mockEvents.filter(event => event.date === formattedDate);
-                
-                return (
-                  <div className="relative">
-                    <div {...props} />
-                    {dayEvents.length > 0 && (
-                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                        <div className="h-1 w-1 rounded-full bg-primary" />
-                      </div>
-                    )}
-                  </div>
-                );
+              modifiers={{
+                hasEvent: (date) => dateHasEvents(date)
+              }}
+              modifiersStyles={{
+                hasEvent: { 
+                  position: 'relative',
+                  '::after': {
+                    content: '""',
+                    position: 'absolute',
+                    bottom: '1px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '4px',
+                    height: '4px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--primary)'
+                  }
+                }
               }}
             />
           </CardContent>
