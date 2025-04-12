@@ -89,21 +89,8 @@ const Planner = () => {
               modifiers={{
                 hasEvent: (date) => dateHasEvents(date)
               }}
-              modifiersStyles={{
-                hasEvent: { 
-                  position: 'relative',
-                  '::after': {
-                    content: '""',
-                    position: 'absolute',
-                    bottom: '1px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '4px',
-                    height: '4px',
-                    borderRadius: '50%',
-                    backgroundColor: 'var(--primary)'
-                  }
-                }
+              modifiersClassNames={{
+                hasEvent: "has-event"
               }}
             />
           </CardContent>
@@ -147,6 +134,25 @@ const Planner = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add CSS for the event indicator dot */}
+      <style jsx global>{`
+        .has-event {
+          position: relative;
+        }
+        
+        .has-event::after {
+          content: '';
+          position: absolute;
+          bottom: 1px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 4px;
+          height: 4px;
+          border-radius: 50%;
+          background-color: var(--primary);
+        }
+      `}</style>
     </div>
   );
 };
