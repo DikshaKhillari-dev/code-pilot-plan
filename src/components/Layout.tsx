@@ -1,9 +1,44 @@
 
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Sidebar, SidebarNav, SidebarNavLink } from '@/components/ui/sidebar';
+import { Sidebar, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { LayoutDashboard, FolderKanban, CalendarDays, Settings, PlusCircle, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
+// Create our custom SidebarNav and SidebarNavLink components
+const SidebarNav = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="flex-1 py-4">
+      <SidebarMenu>
+        {children}
+      </SidebarMenu>
+    </div>
+  );
+};
+
+const SidebarNavLink = ({ 
+  to, 
+  icon: Icon, 
+  children 
+}: { 
+  to: string; 
+  icon: React.ElementType; 
+  children: React.ReactNode 
+}) => {
+  const location = useLocation();
+  const isActive = location.pathname.startsWith(to);
+
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={isActive} tooltip={String(children)}>
+        <Link to={to}>
+          <Icon className="mr-2 h-4 w-4" />
+          <span>{children}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
 
 interface LayoutProps {
   children: React.ReactNode;

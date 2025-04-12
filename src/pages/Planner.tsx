@@ -1,245 +1,141 @@
-
 import React, { useState } from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { useProjects } from '@/context/ProjectContext';
-import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, addMonths, subMonths } from 'date-fns';
+import { CalendarEvent } from '@/types';
+
+// Mock data for calendar events
+const mockEvents: CalendarEvent[] = [
+  {
+    id: '1',
+    title: 'Project Alpha Deadline',
+    date: '2023-06-15',
+    projectId: 'proj-1',
+  },
+  {
+    id: '2',
+    title: 'Beta Testing',
+    date: '2023-06-20',
+    projectId: 'proj-2',
+  },
+  {
+    id: '3',
+    title: 'Client Meeting',
+    date: '2023-06-10',
+    projectId: 'proj-3',
+  },
+];
 
 const Planner = () => {
-  const { projects } = useProjects();
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [month, setMonth] = useState<Date>(new Date());
-  
-  // This would be handled in the real app with a dedicated context or API
-  const [events, setEvents] = useState<Array<{
-    id: string;
-    title: string;
-    date: Date;
-    projectId: string;
-  }>>([
-    {
-      id: '1',
-      title: 'Complete homepage design',
-      date: new Date(),
-      projectId: '1',
-    },
-    {
-      id: '2',
-      title: 'Backend API development',
-      date: new Date(new Date().setDate(new Date().getDate() + 2)),
-      projectId: '2',
-    }
-  ]);
-  
-  const [newEvent, setNewEvent] = useState({
-    title: '',
-    projectId: '',
-  });
   
   const handlePreviousMonth = () => {
-    setMonth(prev => {
-      const newMonth = new Date(prev);
-      newMonth.setMonth(newMonth.getMonth() - 1);
-      return newMonth;
-    });
+    setCurrentDate(subMonths(currentDate, 1));
   };
   
   const handleNextMonth = () => {
-    setMonth(prev => {
-      const newMonth = new Date(prev);
-      newMonth.setMonth(newMonth.getMonth() + 1);
-      return newMonth;
-    });
+    setCurrentDate(addMonths(currentDate, 1));
   };
   
-  const handleAddEvent = () => {
-    if (!selectedDate || !newEvent.title || !newEvent.projectId) return;
-    
-    const newEventObj = {
-      id: Date.now().toString(),
-      title: newEvent.title,
-      date: selectedDate,
-      projectId: newEvent.projectId,
-    };
-    
-    setEvents(prev => [...prev, newEventObj]);
-    setNewEvent({ title: '', projectId: '' });
-  };
-  
-  const getEventsForDate = (date: Date) => {
-    return events.filter(event => 
-      new Date(event.date).toDateString() === new Date(date).toDateString()
-    );
-  };
-  
-  const getProjectById = (id: string) => {
-    return projects.find(project => project.id === id);
-  };
-  
-  const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : [];
-  
-  // Create a function to render event dots on calendar
-  const renderEventIndicator = (day: Date) => {
-    const dayEvents = getEventsForDate(day);
-    
-    if (dayEvents.length === 0) return null;
-    
-    return (
-      <div className="flex justify-center mt-1">
-        {dayEvents.slice(0, 3).map((_, i) => (
-          <div 
-            key={i} 
-            className="h-1.5 w-1.5 rounded-full bg-primary mx-0.5" 
-          />
-        ))}
-        {dayEvents.length > 3 && (
-          <div className="h-1.5 w-1.5 rounded-full bg-primary mx-0.5" />
-        )}
-      </div>
-    );
-  };
-  
+  // Filter events for the selected date
+  const selectedDateEvents = selectedDate 
+    ? mockEvents.filter(event => event.date === format(selectedDate, 'yyyy-MM-dd')) 
+    : [];
+
   return (
-    <div className="container py-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Planner</h1>
-          <p className="text-muted-foreground">
-            Schedule tasks and manage deadlines for your projects
-          </p>
-        </div>
-        <div className="flex gap-2 mt-4 md:mt-0">
-          <Button variant="outline" size="sm" onClick={handlePreviousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="min-w-24 text-center flex items-center justify-center">
-            {month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-          </div>
-          <Button variant="outline" size="sm" onClick={handleNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Planner</h1>
+        <Button>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Event
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <Card className="glass-card">
-            <CardContent className="pt-6">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                month={month}
-                onMonthChange={setMonth}
-                className="rounded-md"
-                components={{
-                  DayContent: ({ day }) => (
-                    <div className="flex flex-col items-center justify-center">
-                      <div>{day.day}</div>
-                      {renderEventIndicator(day.date)}
-                    </div>
-                  ),
-                }}
-              />
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div>
-          <Card className="glass-card">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <CalendarIcon className="h-5 w-5 text-primary" />
-                <h3 className="font-medium">
-                  {selectedDate 
-                    ? selectedDate.toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })
-                    : 'Select a date'
-                  }
-                </h3>
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle>Calendar</CardTitle>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <div className="font-medium">
+                {format(currentDate, 'MMMM yyyy')}
               </div>
-              
-              {selectedDateEvents.length > 0 ? (
-                <div className="space-y-3 mb-4">
-                  {selectedDateEvents.map(event => {
-                    const project = getProjectById(event.projectId);
-                    return (
-                      <div key={event.id} className="p-3 bg-secondary/50 rounded-md">
-                        <div className="font-medium">{event.title}</div>
-                        {project && (
-                          <div className="flex items-center mt-1">
-                            <Badge 
-                              variant="outline" 
-                              className={`text-xs status-${project.status} mr-2`}
-                            >
-                              {project.status}
-                            </Badge>
-                            <span className="text-sm text-muted-foreground">
-                              {project.title}
-                            </span>
-                          </div>
-                        )}
+              <Button variant="outline" size="icon" onClick={handleNextMonth}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              month={currentDate}
+              className="rounded-md border"
+              renderDay={(props) => {
+                const date = props.date;
+                const formattedDate = format(date, 'yyyy-MM-dd');
+                const dayEvents = mockEvents.filter(event => event.date === formattedDate);
+                
+                return (
+                  <div className="relative">
+                    <div {...props} />
+                    {dayEvents.length > 0 && (
+                      <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
+                        <div className="h-1 w-1 rounded-full bg-primary" />
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  {selectedDate 
-                    ? 'No events scheduled for this day' 
-                    : 'Select a date to view events'
-                  }
-                </div>
-              )}
-              
-              {selectedDate && (
-                <div className="mt-4 border-t pt-4">
-                  <h4 className="text-sm font-medium mb-2">Add New Event</h4>
-                  <div className="space-y-3">
-                    <Input 
-                      placeholder="Event title"
-                      value={newEvent.title}
-                      onChange={e => setNewEvent(prev => ({ ...prev, title: e.target.value }))}
-                      className="bg-secondary/50"
-                    />
-                    
-                    <Select 
-                      value={newEvent.projectId}
-                      onValueChange={value => setNewEvent(prev => ({ ...prev, projectId: value }))}
-                    >
-                      <SelectTrigger className="bg-secondary/50">
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {projects.map(project => (
-                          <SelectItem key={project.id} value={project.id}>
-                            {project.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button 
-                      className="w-full" 
-                      onClick={handleAddEvent}
-                      disabled={!newEvent.title || !newEvent.projectId}
-                    >
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Add Event
-                    </Button>
+                    )}
                   </div>
+                );
+              }}
+            />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {selectedDate ? format(selectedDate, 'MMMM d, yyyy') : 'Select a date'}
+            </CardTitle>
+            <CardDescription>
+              {selectedDateEvents.length} events scheduled
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="events">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="events">Events</TabsTrigger>
+                <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              </TabsList>
+              <TabsContent value="events" className="space-y-4 mt-4">
+                {selectedDateEvents.length > 0 ? (
+                  selectedDateEvents.map(event => (
+                    <div key={event.id} className="p-3 border rounded-md">
+                      <div className="font-medium">{event.title}</div>
+                      <div className="text-sm text-muted-foreground">Project: {event.projectId}</div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No events scheduled for this day
+                  </div>
+                )}
+              </TabsContent>
+              <TabsContent value="tasks" className="mt-4">
+                <div className="text-center py-6 text-muted-foreground">
+                  No tasks scheduled for this day
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
